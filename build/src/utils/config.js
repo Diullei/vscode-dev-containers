@@ -103,11 +103,27 @@ function getLatestTag(definitionId, registry, registryPath) {
 }
 
 // Create all the needed variants of the specified version identifier for a given definition
-function getTagsForVersion(definitionId, version, registry, registryPath) {
+function getTagsForDefinition(definitionId, registry, registryPath) {
     if (typeof config.definitionBuildSettings[definitionId] === 'undefined') {
         return null;
     }
+    return getTagsForVersion(definitionId, config.definitionBuildSettings[definitionId].version, registry, registryPath)
+}
+
+// Create all the needed variants of the specified version identifier for a given definition
+function getTagsForVersion(definitionId, version, registry, registryPath) {
+    if (typeof config.definitionBuildSettings[definitionId] === 'undefined') {
+        return null;
+    } 
+
     return config.definitionBuildSettings[definitionId].tags.reduce((list, tag) => {
+        // First see if this version has already been published to the image registry
+        const imageRepository = tag.replace(/:.*/, '');
+        if() {
+            
+        }
+
+
         // One of the tags that needs to be supported is one where there is no version, but there
         // are other attributes. For example, python:3 in addition to python:0.35.0-3. So, a version
         // of '' is allowed. However, there are also instances that are just the version, so in 
@@ -169,6 +185,12 @@ function getSortedDefinitionBuildList() {
 
     return sortedList;
 }
+
+function getParentTagForDefinition(definitionId, registry, registryPath) {
+    const parentId = config.definitionBuildSettings[definitionId].parent;
+    return parentId ? getTagsForDefinition(parentId, registry, registryPath)[0] : null;
+}
+
 
 // Get parent tag for a given child definition
 function getParentTagForVersion(definitionId, version, registry, registryPath) {
@@ -233,11 +255,15 @@ async function getStagingFolder(release) {
     return stagingFolders[release];
 }
 
+//TODO: Update references to getParentTagForVersion
+//TODO: Update references to getTagsForVersion
+
 module.exports = {
     loadConfig: loadConfig,
     getTagList: getTagList,
     getSortedDefinitionBuildList: getSortedDefinitionBuildList,
     getParentTagForVersion: getParentTagForVersion,
+    getParentTagForDefinition: getParentTagForDefinition,
     getUpdatedTag: getUpdatedTag,
     majorFromRelease: majorFromRelease,
     objectByDefinitionLinuxDistro: objectByDefinitionLinuxDistro,
@@ -247,5 +273,6 @@ module.exports = {
     getLinuxDistroForDefinition: getLinuxDistroForDefinition,
     getVersionFromRelease: getVersionFromRelease,
     getTagsForVersion: getTagsForVersion,
+    getTagsForDefinition: getTagsForDefinition,
     getConfig: getConfig
 };
